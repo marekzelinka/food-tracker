@@ -67,3 +67,32 @@ form?.addEventListener('submit', async (event) => {
     submit?.removeAttribute('disabled')
   }
 })
+
+async function init() {
+  // TODO: Get the saved entries and list them
+  const data = await api.get('/?pageSize=100')
+
+  if (!data.documents) {
+    return
+  }
+
+  for (const doc of data.documents) {
+    const fields = doc.fields
+    list?.insertAdjacentHTML(
+      'beforeend',
+      `<li class="card">
+        <div>
+          <h3 class="name">${capitalize(fields.name.stringValue)}</h3>
+          <div class="calories">${calculateCalories({ carbs: fields.carbs.integerValue, protein: fields.protein.integerValue, fat: fields.fat.integerValue })} calories</div>
+          <ul class="macros">
+            <li class="carbs"><div>Carbs</div><div class="value">${fields.carbs.integerValue}g</div></li>
+            <li class="protein"><div>Protein</div><div class="value">${fields.protein.integerValue}g</div></li>
+            <li class="fat"><div>Fat</div><div class="value">${fields.fat.integerValue}g</div></li>
+          </ul>
+        </div>
+      </li>`,
+    )
+  }
+}
+
+init()
