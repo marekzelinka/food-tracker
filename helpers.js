@@ -39,3 +39,15 @@ export function capitalize(string) {
 export function calculateCalories({ carbs, protein, fat }) {
   return carbs * 4 + protein * 4 + fat * 9
 }
+
+export function formatDecimal(value) {
+  return value.toLocaleString('en-US', { style: 'decimal' })
+}
+
+export function formatGrams(value) {
+  return Number(value).toLocaleString('en-US', {
+    style: 'unit',
+    unit: 'gram',
+    unitDisplay: 'narrow',
+  })
+}

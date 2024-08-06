@@ -1,5 +1,11 @@
 import snackbar from 'snackbar'
-import { FetchWrapper, calculateCalories, capitalize } from './helpers.js'
+import {
+  FetchWrapper,
+  calculateCalories,
+  capitalize,
+  formatDecimal,
+  formatGrams,
+} from './helpers.js'
 
 const api = new FetchWrapper(import.meta.env.VITE_API_URL)
 
@@ -18,24 +24,24 @@ async function addFood(food) {
 }
 
 const form = document.querySelector('#create-form')
-const name = form?.querySelector('#create-name')
-const carbs = form?.querySelector('#create-carbs')
-const protein = form?.querySelector('#create-protein')
-const fat = form?.querySelector('#create-fat')
-const submit = form?.querySelector('input[type="submit"]')
+const nameSelect = form?.querySelector('#create-name')
+const carbsInput = form?.querySelector('#create-carbs')
+const proteinInput = form?.querySelector('#create-protein')
+const fatInput = form?.querySelector('#create-fat')
+const submitButton = form?.querySelector('input[type="submit"]')
 const list = document.querySelector('#food-list')
 
 form?.addEventListener('submit', async (event) => {
   event.preventDefault()
 
-  submit?.setAttribute('disabled', 'disabled')
+  submitButton?.setAttribute('disabled', 'disabled')
 
   try {
     const data = await addFood({
-      name: name?.value,
-      carbs: carbs?.value,
-      protein: protein?.value,
-      fat: fat?.value,
+      name: nameSelect?.value,
+      carbs: carbsInput?.value,
+      protein: proteinInput?.value,
+      fat: fatInput?.value,
     })
 
     if (data.error) {
@@ -44,29 +50,27 @@ form?.addEventListener('submit', async (event) => {
 
     snackbar.show('Food added successfully.')
 
-    list.insertAdjacentHTML(
-      'beforeend',
-      `<li class="card">
-        <div>
-          <h3 class="name">${capitalize(name.value)}</h3>
-          <div class="calories">${calculateCalories({ carbs: carbs.value, protein: protein.value, fat: fat.value })} calories</div>
-          <ul class="macros">
-            <li class="carbs"><div>Carbs</div><div class="value">${carbs.value}g</div></li>
-            <li class="protein"><div>Protein</div><div class="value">${protein.value}g</div></li>
-            <li class="fat"><div>Fat</div><div class="value">${fat.value}g</div></li>
-          </ul>
-        </div>
-      </li>`,
-    )
+    const { name, carbs, protein, fat } = data.fields
+    displayEntry({
+      name: name.stringValue,
+      carbs: carbs.integerValue,
+      protein: protein.integerValue,
+      fat: fat.integerValue,
+    })
 
     // Reset form fields
-    event.target?.reset()
+    resetForm(event)
   } catch (error) {
     console.error(error)
   } finally {
-    submit?.removeAttribute('disabled')
+    submitButton?.removeAttribute('disabled')
   }
 })
+
+function resetForm() {
+  form?.reset()
+  nameSelect?.focus()
+}
 
 async function init() {
   // TODO: Get the saved entries and list them
@@ -77,22 +81,53 @@ async function init() {
   }
 
   for (const doc of data.documents) {
-    const fields = doc.fields
-    list?.insertAdjacentHTML(
-      'beforeend',
-      `<li class="card">
-        <div>
-          <h3 class="name">${capitalize(fields.name.stringValue)}</h3>
-          <div class="calories">${calculateCalories({ carbs: fields.carbs.integerValue, protein: fields.protein.integerValue, fat: fields.fat.integerValue })} calories</div>
-          <ul class="macros">
-            <li class="carbs"><div>Carbs</div><div class="value">${fields.carbs.integerValue}g</div></li>
-            <li class="protein"><div>Protein</div><div class="value">${fields.protein.integerValue}g</div></li>
-            <li class="fat"><div>Fat</div><div class="value">${fields.fat.integerValue}g</div></li>
-          </ul>
-        </div>
-      </li>`,
-    )
+    const { name, carbs, protein, fat } = doc.fields
+    displayEntry({
+      name: name.stringValue,
+      carbs: carbs.integerValue,
+      protein: protein.integerValue,
+      fat: fat.integerValue,
+    })
   }
 }
 
 init()
+
+function displayEntry({ name, carbs, protein, fat }) {
+  const title = capitalize(name)
+  const totalCalories = calculateCalories({ carbs, protein, fat })
+
+  list.insertAdjacentHTML(
+    'beforeend',
+    `<li class="card">
+        <div>
+          <h3 class="name">
+            ${title}
+          </h3>
+          <div class="calories">
+            ${formatDecimal(totalCalories)} calories
+          </div>
+          <ul class="macros">
+            <li class="carbs">
+              <div>Carbs</div>
+              <div class="value">
+                ${formatGrams(carbs)}
+              </div>
+            </li>
+            <li class="protein">
+              <div>Protein</div>
+              <div class="value">
+                ${formatGrams(protein)}
+              </div>
+            </li>
+            <li class="fat">
+              <div>Fat</div>
+              <div class="value">
+                ${formatGrams(fat)}
+              </div>
+            </li>
+          </ul>
+        </div>
+      </li>`,
+  )
+}
