@@ -21,30 +21,53 @@ async function addFood(food) {
 }
 
 const form = document.querySelector('#create-form')
-const nameSelect = form?.querySelector('#create-name')
-const carbsInput = form?.querySelector('#create-carbs')
-const proteinInput = form?.querySelector('#create-protein')
-const fatInput = form?.querySelector('#create-fat')
-const submitButton = form?.querySelector('input[type="submit"]')
+const name = form?.querySelector('#create-name')
+const carbs = form?.querySelector('#create-carbs')
+const protein = form?.querySelector('#create-protein')
+const fat = form?.querySelector('#create-fat')
+const submit = form?.querySelector('input[type="submit"]')
+const list = document.querySelector('#food-list')
 
 form?.addEventListener('submit', async (event) => {
   event.preventDefault()
 
-  submitButton?.setAttribute('disabled', 'disabled')
+  submit?.setAttribute('disabled', 'disabled')
 
   try {
-    await addFood({
-      name: nameSelect?.value,
-      carbs: carbsInput?.value,
-      protein: proteinInput?.value,
-      fat: fatInput?.value,
+    const data = await addFood({
+      name: name?.value,
+      carbs: carbs?.value,
+      protein: protein?.value,
+      fat: fat?.value,
     })
+
+    if (data.error) {
+      // there was an error
+      return
+    }
+
+    list.insertAdjacentHTML(
+      'beforeend',
+      `
+      <li class="card">
+        <div>
+          <h3 class="name">${name.value}</h3>
+          <div class="calories">0 calories</div>
+          <ul class="macros">
+            <li class="carbs"><div>Carbs</div><div class="value">${carbs.value}g</div></li>
+            <li class="protein"><div>Protein</div><div class="value">${protein.value}g</div></li>
+            <li class="fat"><div>Fat</div><div class="value">${fat.value}g</div></li>
+          </ul>
+        </div>
+      </li>
+    `,
+    )
 
     // Reset form fields
     event.target?.reset()
   } catch (error) {
     console.error(error)
   } finally {
-    submitButton?.removeAttribute('disabled')
+    submit?.removeAttribute('disabled')
   }
 })
