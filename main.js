@@ -1,9 +1,10 @@
+import snackbar from 'snackbar'
 import { FetchWrapper, calculateCalories, capitalize } from './helpers.js'
 
 const api = new FetchWrapper(import.meta.env.VITE_API_URL)
 
 async function addFood(food) {
-  const data = {
+  const object = {
     fields: {
       name: { stringValue: food.name },
       carbs: { integerValue: food.carbs },
@@ -11,13 +12,9 @@ async function addFood(food) {
       fat: { integerValue: food.fat },
     },
   }
-  const result = await api.post('/', data)
+  const data = await api.post('/', object)
 
-  if (result.error) {
-    throw new Error(result.error)
-  }
-
-  return result
+  return data
 }
 
 const form = document.querySelector('#create-form')
@@ -42,9 +39,10 @@ form?.addEventListener('submit', async (event) => {
     })
 
     if (data.error) {
-      // there was an error
-      return
+      return snackbar.show('Some data is missing.')
     }
+
+    snackbar.show('Food added successfully.')
 
     list.insertAdjacentHTML(
       'beforeend',
