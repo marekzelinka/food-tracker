@@ -13,27 +13,16 @@ const api = new FetchWrapper(import.meta.env.VITE_API_URL)
 
 const store = new Store()
 
-async function addFood(food) {
-  const object = {
-    fields: {
-      name: { stringValue: food.name },
-      carbs: { integerValue: food.carbs },
-      protein: { integerValue: food.protein },
-      fat: { integerValue: food.fat },
-    },
-  }
-  const data = await api.post('/', object)
-
-  return data
-}
-
 const form = document.querySelector('#create-form')
 const nameSelect = form?.querySelector('#create-name')
 const carbsInput = form?.querySelector('#create-carbs')
 const proteinInput = form?.querySelector('#create-protein')
 const fatInput = form?.querySelector('#create-fat')
 const submitButton = form?.querySelector('input[type="submit"]')
+
 const list = document.querySelector('#food-list')
+
+const totalCalories = document.querySelector('#total-calories')
 
 form?.addEventListener('submit', async (event) => {
   event.preventDefault()
@@ -61,7 +50,7 @@ form?.addEventListener('submit', async (event) => {
       protein: protein.integerValue,
       fat: fat.integerValue,
     })
-    renderChart(store)
+    render()
 
     // Reset form fields
     resetForm(event)
@@ -77,27 +66,27 @@ function resetForm() {
   nameSelect?.focus()
 }
 
-async function init() {
-  // TODO: Get the saved entries and list them
-  const data = await api.get('/?pageSize=100')
+async function addFood(food) {
+  const object = {
+    fields: {
+      name: { stringValue: food.name },
+      carbs: { integerValue: food.carbs },
+      protein: { integerValue: food.protein },
+      fat: { integerValue: food.fat },
+    },
+  }
+  const data = await api.post('/', object)
 
-  if (!data.documents) {
+  return data
+}
+
+function updateTotalCalories() {
+  if (!totalCalories) {
     return
   }
 
-  for (const doc of data.documents) {
-    const { name, carbs, protein, fat } = doc.fields
-    displayEntry({
-      name: name.stringValue,
-      carbs: carbs.integerValue,
-      protein: protein.integerValue,
-      fat: fat.integerValue,
-    })
-  }
-  renderChart(store)
+  totalCalories.textContent = formatDecimal(store.totalCalories)
 }
-
-init()
 
 function displayEntry({ name, carbs, protein, fat }) {
   store.addFood({ carbs, protein, fat })
@@ -139,3 +128,30 @@ function displayEntry({ name, carbs, protein, fat }) {
       </li>`,
   )
 }
+
+function render() {
+  renderChart(store)
+  updateTotalCalories()
+}
+
+async function init() {
+  // TODO: Get the saved entries and list them
+  const data = await api.get('/?pageSize=100')
+
+  if (!data.documents) {
+    return
+  }
+
+  for (const doc of data.documents) {
+    const { name, carbs, protein, fat } = doc.fields
+    displayEntry({
+      name: name.stringValue,
+      carbs: carbs.integerValue,
+      protein: protein.integerValue,
+      fat: fat.integerValue,
+    })
+  }
+  render()
+}
+
+init()

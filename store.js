@@ -1,3 +1,5 @@
+import { calculateCalories } from './helpers.js'
+
 export class Store {
   constructor() {
     this.foods = []
@@ -12,18 +14,26 @@ export class Store {
   }
 
   get totalCarbs() {
-    return this.#getTotal('carbs')
+    return this.#getMacroTotal('carbs')
   }
 
   get totalProtein() {
-    return this.#getTotal('protein')
+    return this.#getMacroTotal('protein')
   }
 
   get totalFat() {
-    return this.#getTotal('fat')
+    return this.#getMacroTotal('fat')
   }
 
-  #getTotal(key) {
+  get totalCalories() {
+    return calculateCalories({
+      carbs: this.totalCarbs,
+      protein: this.totalProtein,
+      fat: this.totalFat,
+    })
+  }
+
+  #getMacroTotal(key) {
     return this.foods.reduce((total, item) => total + item[key], 0)
   }
 }
