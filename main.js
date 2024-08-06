@@ -1,4 +1,5 @@
 import snackbar from 'snackbar'
+import { renderChart } from './chart.js'
 import {
   FetchWrapper,
   calculateCalories,
@@ -6,8 +7,11 @@ import {
   formatDecimal,
   formatGrams,
 } from './helpers.js'
+import { Store } from './store.js'
 
 const api = new FetchWrapper(import.meta.env.VITE_API_URL)
+
+const store = new Store()
 
 async function addFood(food) {
   const object = {
@@ -57,6 +61,7 @@ form?.addEventListener('submit', async (event) => {
       protein: protein.integerValue,
       fat: fat.integerValue,
     })
+    renderChart(store)
 
     // Reset form fields
     resetForm(event)
@@ -89,11 +94,14 @@ async function init() {
       fat: fat.integerValue,
     })
   }
+  renderChart(store)
 }
 
 init()
 
 function displayEntry({ name, carbs, protein, fat }) {
+  store.addFood({ carbs, protein, fat })
+
   const title = capitalize(name)
   const totalCalories = calculateCalories({ carbs, protein, fat })
 
