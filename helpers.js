@@ -31,3 +31,11 @@ export class FetchWrapper {
     return await response.json()
   }
 }
+
+export function capitalize(string) {
+  return string[0].toUpperCase() + string.slice(1)
+}
+
+export function calculateCalories({ carbs, protein, fat }) {
+  return carbs * 4 + protein * 4 + fat * 9
+}
