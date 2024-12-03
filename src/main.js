@@ -1,40 +1,41 @@
 import snackbar from 'snackbar'
-import { renderChart } from './chart.js'
+import { renderChart } from './lib/chart.js'
+import { createFood, getAllFood } from './lib/food.js'
+import { Store } from './lib/store.js'
 import {
   FetchWrapper,
   calculateCalories,
   capitalize,
   formatDecimal,
   formatGrams,
-} from './helpers.js'
-import { Store } from './store.js'
+} from './lib/utils.js'
 
-const api = new FetchWrapper(import.meta.env.VITE_API_URL)
+const api = new FetchWrapper()
 
 const store = new Store()
 
 const form = document.querySelector('#create-form')
-const nameSelect = form?.querySelector('#create-name')
-const carbsInput = form?.querySelector('#create-carbs')
-const proteinInput = form?.querySelector('#create-protein')
-const fatInput = form?.querySelector('#create-fat')
-const submitButton = form?.querySelector('input[type="submit"]')
+const nameSelect = form.querySelector('#create-name')
+const carbsInput = form.querySelector('#create-carbs')
+const proteinInput = form.querySelector('#create-protein')
+const fatInput = form.querySelector('#create-fat')
+const submitButton = form.querySelector('input[type="submit"]')
 
 const list = document.querySelector('#food-list')
 
 const totalCalories = document.querySelector('#total-calories')
 
-form?.addEventListener('submit', async (event) => {
+form.addEventListener('submit', async (event) => {
   event.preventDefault()
 
-  submitButton?.setAttribute('disabled', 'disabled')
+  submitButton.setAttribute('disabled', 'disabled')
 
   try {
     const data = await addFood({
-      name: nameSelect?.value,
-      carbs: carbsInput?.value,
-      protein: proteinInput?.value,
-      fat: fatInput?.value,
+      name: nameSelect.value,
+      carbs: carbsInput.value,
+      protein: proteinInput.value,
+      fat: fatInput.value,
     })
 
     if (data.error) {
@@ -50,32 +51,29 @@ form?.addEventListener('submit', async (event) => {
       protein: protein.integerValue,
       fat: fat.integerValue,
     })
+
     render()
 
-    // Reset form fields
     resetForm(event)
   } catch (error) {
-    console.error(error)
+    snackbar.show('Failed to add your food item. Try again…')
   } finally {
-    submitButton?.removeAttribute('disabled')
+    submitButton.removeAttribute('disabled')
   }
 })
 
 function resetForm() {
-  form?.reset()
-  nameSelect?.focus()
+  form.reset()
+  nameSelect.focus()
 }
 
-async function addFood(food) {
-  const object = {
-    fields: {
-      name: { stringValue: food.name },
-      carbs: { integerValue: food.carbs },
-      protein: { integerValue: food.protein },
-      fat: { integerValue: food.fat },
-    },
-  }
-  const data = await api.post('/', object)
+async function addFood({ name, carbs, protein, fat }) {
+  const data = await createFood({
+    name,
+    carbs,
+    protein,
+    fat,
+  })
 
   return data
 }
@@ -131,14 +129,15 @@ function displayEntry({ name, carbs, protein, fat }) {
 
 function render() {
   renderChart(store)
+
   updateTotalCalories()
 }
 
 async function init() {
-  // TODO: Get the saved entries and list them
-  const data = await api.get('/?pageSize=100')
-
+  const data = await getAllFood()
   if (!data.documents) {
+    snackbar.show('No food items found. Add some now…')
+
     return
   }
 
@@ -151,6 +150,7 @@ async function init() {
       fat: fat.integerValue,
     })
   }
+
   render()
 }
 

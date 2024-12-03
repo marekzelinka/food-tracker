@@ -250,6 +250,16 @@ input:not(.btn) {
   padding: 0 20px;
 }
 
+#main {
+  padding-top: 16px;
+  padding-bottom: 16px;
+}
+
+#main > h2 {
+  padding-bottom: 18px;
+  border-bottom: 1px solid var(--neutral-4);
+}
+
 #footer-wrapper {
   background-color: var(--neutral-5);
   padding: 40px 20px;
