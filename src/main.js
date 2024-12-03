@@ -1,34 +1,34 @@
-import snackbar from 'snackbar'
-import { renderChart } from './lib/chart.js'
-import { createFood, getAllFood } from './lib/food.js'
-import { Store } from './lib/store.js'
+import snackbar from "snackbar";
+import { renderChart } from "./lib/chart.js";
+import { createFood, getAllFood } from "./lib/food.js";
+import { Store } from "./lib/store.js";
 import {
   FetchWrapper,
   calculateCalories,
   capitalize,
   formatDecimal,
   formatGrams,
-} from './lib/utils.js'
+} from "./lib/utils.js";
 
-const api = new FetchWrapper()
+const api = new FetchWrapper();
 
-const store = new Store()
+const store = new Store();
 
-const form = document.querySelector('#create-form')
-const nameSelect = form.querySelector('#create-name')
-const carbsInput = form.querySelector('#create-carbs')
-const proteinInput = form.querySelector('#create-protein')
-const fatInput = form.querySelector('#create-fat')
-const submitButton = form.querySelector('input[type="submit"]')
+const form = document.querySelector("#create-form");
+const nameSelect = form.querySelector("#create-name");
+const carbsInput = form.querySelector("#create-carbs");
+const proteinInput = form.querySelector("#create-protein");
+const fatInput = form.querySelector("#create-fat");
+const submitButton = form.querySelector('input[type="submit"]');
 
-const list = document.querySelector('#food-list')
+const list = document.querySelector("#food-list");
 
-const totalCalories = document.querySelector('#total-calories')
+const totalCalories = document.querySelector("#total-calories");
 
-form.addEventListener('submit', async (event) => {
-  event.preventDefault()
+form.addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-  submitButton.setAttribute('disabled', 'disabled')
+  submitButton.setAttribute("disabled", "disabled");
 
   try {
     const data = await addFood({
@@ -36,35 +36,35 @@ form.addEventListener('submit', async (event) => {
       carbs: carbsInput.value,
       protein: proteinInput.value,
       fat: fatInput.value,
-    })
+    });
 
     if (data.error) {
-      return snackbar.show('Some data is missing.')
+      return snackbar.show("Some data is missing.");
     }
 
-    snackbar.show('Food added successfully.')
+    snackbar.show("Food added successfully.");
 
-    const { name, carbs, protein, fat } = data.fields
+    const { name, carbs, protein, fat } = data.fields;
     displayEntry({
       name: name.stringValue,
       carbs: carbs.integerValue,
       protein: protein.integerValue,
       fat: fat.integerValue,
-    })
+    });
 
-    render()
+    render();
 
-    resetForm(event)
+    resetForm(event);
   } catch (error) {
-    snackbar.show('Failed to add your food item. Try again…')
+    snackbar.show("Failed to add your food item. Try again…");
   } finally {
-    submitButton.removeAttribute('disabled')
+    submitButton.removeAttribute("disabled");
   }
-})
+});
 
 function resetForm() {
-  form.reset()
-  nameSelect.focus()
+  form.reset();
+  nameSelect.focus();
 }
 
 async function addFood({ name, carbs, protein, fat }) {
@@ -73,27 +73,27 @@ async function addFood({ name, carbs, protein, fat }) {
     carbs,
     protein,
     fat,
-  })
+  });
 
-  return data
+  return data;
 }
 
 function updateTotalCalories() {
   if (!totalCalories) {
-    return
+    return;
   }
 
-  totalCalories.textContent = formatDecimal(store.totalCalories)
+  totalCalories.textContent = formatDecimal(store.totalCalories);
 }
 
 function displayEntry({ name, carbs, protein, fat }) {
-  store.addFood({ carbs, protein, fat })
+  store.addFood({ carbs, protein, fat });
 
-  const title = capitalize(name)
-  const totalCalories = calculateCalories({ carbs, protein, fat })
+  const title = capitalize(name);
+  const totalCalories = calculateCalories({ carbs, protein, fat });
 
   list.insertAdjacentHTML(
-    'beforeend',
+    "beforeend",
     `<li class="card">
         <div>
           <h3 class="name">
@@ -124,34 +124,34 @@ function displayEntry({ name, carbs, protein, fat }) {
           </ul>
         </div>
       </li>`,
-  )
+  );
 }
 
 function render() {
-  renderChart(store)
+  renderChart(store);
 
-  updateTotalCalories()
+  updateTotalCalories();
 }
 
 async function init() {
-  const data = await getAllFood()
+  const data = await getAllFood();
   if (!data.documents) {
-    snackbar.show('No food items found. Add some now…')
+    snackbar.show("No food items found. Add some now…");
 
-    return
+    return;
   }
 
   for (const doc of data.documents) {
-    const { name, carbs, protein, fat } = doc.fields
+    const { name, carbs, protein, fat } = doc.fields;
     displayEntry({
       name: name.stringValue,
       carbs: carbs.integerValue,
       protein: protein.integerValue,
       fat: fat.integerValue,
-    })
+    });
   }
 
-  render()
+  render();
 }
 
-init()
+init();
